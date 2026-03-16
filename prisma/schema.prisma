@@ -18,6 +18,7 @@ model User {
   properties    Property[]
   notifications Notification[]
   auditLogs     AuditLog[]
+  expenses      Expense[]
 }
 
 model Property {
@@ -46,6 +47,8 @@ model Property {
   documents        Document[]
   maintenance      MaintenanceRequest[]
   insurance        Insurance[]
+  expenses         Expense[]
+  mortgages        Mortgage[]
 }
 
 model Tenant {
@@ -247,4 +250,38 @@ model AuditLog {
   entityId  String
   details   String?
   createdAt DateTime @default(now())
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  propertyId  String?
+  property    Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  category    String   // repairs, insurance, mortgage_interest, agent_fees, legal, accounting, travel, utilities, furnishings, other
+  description String
+  amount      Float
+  date        DateTime
+  receiptUrl  String?
+  supplier    String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Mortgage {
+  id              String    @id @default(cuid())
+  propertyId      String
+  property        Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  provider        String
+  accountNumber   String?
+  type            String    @default("fixed") // fixed, variable, tracker
+  interestRate    Float
+  monthlyPayment  Float
+  outstandingBalance Float?
+  startDate       DateTime
+  endDate         DateTime
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }

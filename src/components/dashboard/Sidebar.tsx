@@ -8,6 +8,7 @@ const navigation = [
     group: 'Overview',
     items: [
       { name: 'Dashboard', href: '/dashboard', icon: '📊' },
+      { name: 'Reports', href: '/dashboard/reports', icon: '📋' },
     ],
   },
   {
@@ -48,9 +49,45 @@ const navigation = [
     ],
   },
   {
+    group: 'Documents',
+    items: [
+      { name: 'Library', href: '/dashboard/documents', icon: '📄' },
+    ],
+  },
+  {
+    group: 'Maintenance',
+    items: [
+      { name: 'Requests', href: '/dashboard/maintenance', icon: '🔧' },
+      { name: 'Log Request', href: '/dashboard/maintenance/new', icon: '➕' },
+    ],
+  },
+  {
+    group: 'Insurance',
+    items: [
+      { name: 'Policies', href: '/dashboard/insurance', icon: '🛡️' },
+      { name: 'Add Policy', href: '/dashboard/insurance/new', icon: '➕' },
+    ],
+  },
+  {
+    group: 'Finance',
+    items: [
+      { name: 'Overview', href: '/dashboard/finance', icon: '💰' },
+      { name: 'Income', href: '/dashboard/finance/income', icon: '📥' },
+      { name: 'Expenses', href: '/dashboard/finance/expenses', icon: '🧾' },
+      { name: 'Tax (MTD)', href: '/dashboard/finance/tax', icon: '📊' },
+      { name: 'Mortgages', href: '/dashboard/finance/mortgages', icon: '🏦' },
+    ],
+  },
+  {
     group: 'Notices',
     items: [
       { name: 'Generator', href: '/dashboard/notices', icon: '📝' },
+    ],
+  },
+  {
+    group: 'Account',
+    items: [
+      { name: 'Settings', href: '/dashboard/settings', icon: '⚙️' },
     ],
   },
 ];
@@ -66,24 +103,24 @@ export function Sidebar() {
           <span className="text-amber">Shield</span>
         </Link>
       </div>
-      <nav className="flex-1 px-3 py-4 space-y-6">
+      <nav className="flex-1 px-3 py-4 space-y-4">
         {navigation.map((group) => (
           <div key={group.group}>
             <h3 className="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">{group.group}</h3>
-            <div className="mt-2 space-y-1">
+            <div className="mt-1 space-y-0.5">
               {group.items.map((item) => {
                 const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href + '/'));
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    className={`flex items-center gap-3 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                       isActive
                         ? 'bg-white/15 text-amber'
                         : 'text-slate-300 hover:bg-white/10 hover:text-white'
                     }`}
                   >
-                    <span className="text-lg">{item.icon}</span>
+                    <span className="text-base">{item.icon}</span>
                     {item.name}
                   </Link>
                 );

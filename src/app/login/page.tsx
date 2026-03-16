@@ -6,9 +6,9 @@ import Link from 'next/link';
 import { LandlordShieldLogo } from '@/components/icons/LandlordShieldLogo';
 
 const demoAccounts = [
-  { label: 'Landlord Demo', email: 'landlord@demo.com', password: 'demo123', role: 'Landlord' },
-  { label: 'Property Manager Demo', email: 'manager@demo.com', password: 'demo123', role: 'Property Manager' },
-  { label: 'Accountant Demo', email: 'accountant@demo.com', password: 'demo123', role: 'Accountant' },
+  { label: 'Sarah (Landlord)', email: 'sarah@landlordshield.demo', password: 'LandlordShield2026!', role: '6 properties' },
+  { label: 'James (Manager)', email: 'james@landlordshield.demo', password: 'LandlordShield2026!', role: 'Property Manager' },
+  { label: 'Accountant', email: 'accountant@landlordshield.demo', password: 'LandlordShield2026!', role: 'Read-only Finance' },
 ];
 
 export default function LoginPage() {
