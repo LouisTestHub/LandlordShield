@@ -1,0 +1,250 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  name          String?
+  passwordHash  String
+  role          String         @default("landlord") // landlord, property_manager, accountant, admin
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  properties    Property[]
+  notifications Notification[]
+  auditLogs     AuditLog[]
+}
+
+model Property {
+  id               String              @id @default(cuid())
+  userId           String
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  address          String
+  postcode         String
+  type             String              @default("house") // house, flat, HMO, commercial
+  bedrooms         Int                 @default(0)
+  bathrooms        Int                 @default(0)
+  epcRating        String?
+  councilTaxBand   String?
+  purchaseDate     DateTime?
+  purchasePrice    Float?
+  currentValue     Float?
+  mortgageProvider String?
+  mortgageRate     Float?
+  status           String              @default("active") // active, vacant, sold
+  notes            String?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  tenancies        Tenancy[]
+  certificates     Certificate[]
+  complianceTasks  ComplianceTask[]
+  documents        Document[]
+  maintenance      MaintenanceRequest[]
+  insurance        Insurance[]
+}
+
+model Tenant {
+  id                  String    @id @default(cuid())
+  name                String
+  email               String?
+  phone               String?
+  dateOfBirth         DateTime?
+  nationality         String?
+  rightToRentChecked  Boolean   @default(false)
+  rightToRentExpiry   DateTime?
+  emergencyContact    String?
+  emergencyPhone      String?
+  notes               String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  tenancies           Tenancy[]
+}
+
+model Tenancy {
+  id                   String        @id @default(cuid())
+  propertyId           String
+  property             Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  tenantId             String
+  tenant               Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  startDate            DateTime
+  endDate              DateTime?
+  rentAmount           Float
+  rentFrequency        String        @default("monthly") // weekly, monthly
+  paymentMethod        String?
+  depositAmount        Float?
+  depositScheme        String?       // DPS, TDS, MyDeposits
+  depositReference     String?
+  depositProtectedDate DateTime?
+  status               String        @default("active") // active, ending, ended
+  noticePeriod         Int?
+  notes                String?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  rentIncreases        RentIncrease[]
+  rentPayments         RentPayment[]
+  documents            Document[]
+  notices              Notice[]
+  maintenance          MaintenanceRequest[]
+}
+
+model Certificate {
+  id               String          @id @default(cuid())
+  propertyId       String
+  property         Property        @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  type             String          // gas_safety, eicr, epc, legionella, fire_risk, smoke_co, pat, asbestos
+  issueDate        DateTime
+  expiryDate       DateTime
+  certificateNumber String?
+  engineer         String?
+  engineerGasRegNo String?
+  documentUrl      String?
+  status           String          @default("valid") // valid, expiring, expired
+  reminderSent     Boolean         @default(false)
+  notes            String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  complianceTasks  ComplianceTask[]
+}
+
+model ComplianceTask {
+  id            String       @id @default(cuid())
+  propertyId    String
+  property      Property     @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  certificateId String?
+  certificate   Certificate? @relation(fields: [certificateId], references: [id], onDelete: SetNull)
+  title         String
+  description   String?
+  dueDate       DateTime
+  completedDate DateTime?
+  priority      String       @default("medium") // high, medium, low
+  status        String       @default("pending") // pending, overdue, completed, snoozed
+  category      String?
+  reminderDays  Int          @default(30)
+  notes         String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model RentIncrease {
+  id                 String    @id @default(cuid())
+  tenancyId          String
+  tenancy            Tenancy   @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
+  currentRent        Float
+  proposedRent       Float
+  increaseDate       DateTime
+  noticeServedDate   DateTime?
+  method             String    @default("section13") // section13, agreement
+  marketRentEvidence String?
+  status             String    @default("proposed") // proposed, served, accepted, challenged, tribunal
+  tribunalDate       DateTime?
+  tribunalOutcome    String?
+  notes              String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model RentPayment {
+  id        String    @id @default(cuid())
+  tenancyId String
+  tenancy   Tenancy   @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
+  amount    Float
+  dueDate   DateTime
+  paidDate  DateTime?
+  method    String?
+  reference String?
+  status    String    @default("paid") // paid, late, partial, missed, void
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Document {
+  id         String   @id @default(cuid())
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  tenancyId  String?
+  tenancy    Tenancy?  @relation(fields: [tenancyId], references: [id], onDelete: SetNull)
+  name       String
+  type       String   // notice, contract, letter, report, certificate, photo
+  fileUrl    String
+  uploadedAt DateTime @default(now())
+  notes      String?
+}
+
+model Notice {
+  id            String   @id @default(cuid())
+  tenancyId     String
+  tenancy       Tenancy  @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
+  type          String   // section8, section13, rent_increase, intention_to_sell, family_move_in
+  servedDate    DateTime?
+  effectiveDate DateTime?
+  grounds       String?
+  status        String   @default("draft") // draft, served, acknowledged, expired, court
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model MaintenanceRequest {
+  id            String    @id @default(cuid())
+  propertyId    String
+  property      Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  tenancyId     String?
+  tenancy       Tenancy?  @relation(fields: [tenancyId], references: [id], onDelete: SetNull)
+  title         String
+  description   String?
+  priority      String    @default("medium") // emergency, high, medium, low
+  status        String    @default("reported") // reported, acknowledged, in_progress, completed, closed
+  reportedDate  DateTime  @default(now())
+  completedDate DateTime?
+  cost          Float?
+  contractor    String?
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Insurance {
+  id          String   @id @default(cuid())
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  provider    String
+  policyNumber String?
+  type        String   // buildings, contents, landlord, rent_guarantee, legal
+  startDate   DateTime
+  renewalDate DateTime
+  premium     Float?
+  excess      Float?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String
+  read      Boolean  @default(false)
+  readAt    DateTime?
+  actionUrl String?
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String
+  entity    String
+  entityId  String
+  details   String?
+  createdAt DateTime @default(now())
+}
